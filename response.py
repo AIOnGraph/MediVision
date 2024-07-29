@@ -7,19 +7,11 @@ from docx import Document
 from langchain.schema import  SystemMessage
 import streamlit as st
 from PyPDF2 import PdfReader
-from langchain.chat_models import ChatOpenAI
 from openai import AuthenticationError
-from langchain.memory import ConversationBufferWindowMemory
 from operator import itemgetter
 from langchain_core.runnables import RunnableLambda, RunnablePassthrough
-from langchain_openai import ChatOpenAI
 import time
-from langchain.prompts import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    MessagesPlaceholder,
-    SystemMessagePromptTemplate,
-    )
+
 
 def TextExtractor(DocumentFile):
     if DocumentFile.name.lower().endswith(('.jpg', '.jpeg', '.png')):
@@ -57,18 +49,8 @@ def openaiResponse(Report_file,language,llm):
             body='AuthenticationError : Please provide correct api key 🔑' ,icon='🤖')
         return 'AuthenticationError'
     
-
-def chat_response(text_from_pdf, query, OpenAi_Api_Key):
+def chat_response(text_from_pdf, query,llm_model,prompt_templates,memory):
     try:
-        llm_model = ChatOpenAI(model= "gpt-3.5-turbo",openai_api_key=OpenAi_Api_Key,temperature=0.0, streaming=True)
-        memory = ConversationBufferWindowMemory(
-        llm=llm_model, memory_key="history", return_messages=True,k=10)
-        prompt_templates = ChatPromptTemplate(
-        messages=[
-            SystemMessagePromptTemplate.from_template(
-                "{instruction_for_bot} {text_from_pdf}"),
-            MessagesPlaceholder(variable_name="history"),
-            HumanMessagePromptTemplate.from_template("{question},")], input_variables=["text_from_pdf", "instruction_for_bot"])
         chain = (
             RunnablePassthrough.assign(
                 history=RunnableLambda(
